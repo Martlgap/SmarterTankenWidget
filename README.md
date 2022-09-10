@@ -20,11 +20,13 @@ Small example widget:
 - Download the [Scriptable App](https://apps.apple.com/de/app/scriptable/id1405459188).
 - Open the Scriptable App and create a new script (+Button in the top-right corner).
 - Name your script for example "SmarterTankenWidget" by simply tapping on "Untitled Script" in the top of the sreen.
-- Copy&Paste the code [cryptowidget.js](https://raw.githubusercontent.com/Martlgap/SmarterTankenWidget/main/SmarterTankenWidget.js) code into the App and press "done".
+- Copy&Paste the code [SmarterTankenWidget.js](https://raw.githubusercontent.com/Martlgap/SmarterTankenWidget/main/SmarterTankenWidget.js) code into the App.
+- See the first content block of the code and modify it.
+- Press "done".
 - Go to your home-screen and add a new widget.
 - Select the Scriptable App and choose the size of the widget.
 - Press "Add Widget" and back on your home-screen press on the newly added widget-space.
-- Select your script and choose what happens when interacting
+- Select your script and choose what happens when interacting.
 
 ## ☑️ TODOS
 - [ ] Use lat and long from config
