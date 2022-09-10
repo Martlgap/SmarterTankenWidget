@@ -29,10 +29,10 @@ Small example widget:
 - Select your script and choose what happens when interacting.
 
 ## ☑️ TODOS
-- [ ] Use lat and long from config
-- [ ] Variable fueltype
+- [ ] ~~Use lat and long from config~~
+- [x] ~~Variable fueltype~~
 - [ ] Support for other countries
-- [ ] Light mode support
+- [x] ~~Light mode support~~
 
 ## 🔍 Find more widgets on
 - [https://www.scriptables.de/](https://www.scriptables.de/)
