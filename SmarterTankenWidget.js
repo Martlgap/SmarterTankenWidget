@@ -12,12 +12,14 @@ const apiKey = "00000000-0000-0000-0000-000000000000" // <----- * MODIFY THIS *
 
 // Define the location of Gas-Station A (Currently only support for stations in Austria)
 const stationA = {
+  "country":"austria", // country ("austria" or "germany")
   "latitude":"44.4444", // latitude (decimal value)  // <----- * MODIFY THIS *
   "longitude":"11.1111" // longitude (decimal value)  // <----- * MODIFY THIS *
 }
 
 // Define the location Gas-Station B (Currently only support for stations in Germany)
 const stationB = {
+  "country":"austria", // country ("austria" or "germany")
   "latitude":"44.3333", // latitude (decimal value)  // <----- * MODIFY THIS *
   "longitude":"11.2222" // longitude (decimal value)  // <----- * MODIFY THIS *
 }
@@ -28,13 +30,24 @@ const fuelType = "super" // string: ("super" or "diesel")   // <----- * MODIFY T
 
 
 
-
 // *CAUTION* Do not modify anything below this line!
 // _________________________________________________
 
 // Set fuelTypes
-stationA["fuelType"] = (fuelType == "super") ? "SUP": "DIE"
-stationB["fuelType"] = (fuelType == "super") ? "e5" : "diesel"
+const fuelTypeLookup = {
+    "austria":
+    {
+    "super":"SUP",
+    "diesel":"DIE"
+    },
+    "germany":
+    {
+    "super":"e5",
+    "diesel":"diesel"
+    }
+}
+stationA["fuelType"] = fuelTypeLookup[stationA.country][fuelType]
+stationB["fuelType"] = fuelTypeLookup[stationB.country][fuelType]
 
 // Set widget fuelpump icon 
 const pumpIcon = SFSymbol.named("fuelpump.circle")
@@ -48,7 +61,9 @@ const dangerColor = Color.red()
 const successColor = Color.green()
 
 // Set fuelTypeString
-var fuelTypeStringList = (fuelType == "super") ? [
+var fuelTypeStringList = {
+    "super":
+    [
     SFSymbol.named("s.square"), 
     SFSymbol.named("u.square"),   
     SFSymbol.named("p.square"), 
@@ -56,8 +71,9 @@ var fuelTypeStringList = (fuelType == "super") ? [
     SFSymbol.named("r.square"),
     SFSymbol.named("e.square"),
     SFSymbol.named("5.square")
-    ]
-  :[
+    ], 
+    "diesel":
+    [
     SFSymbol.named("d.square"),   
     SFSymbol.named("i.square"), 
     SFSymbol.named("e.square"), 
@@ -65,14 +81,29 @@ var fuelTypeStringList = (fuelType == "super") ? [
     SFSymbol.named("e.square"),
     SFSymbol.named("l.square")
     ]
+}
 
-
-// Request method for austrian gas stations:
-async function getPriceDataA(d) {
+// Request method
+async function getPriceData(d) {
   try {
-    const reqUrl = `https://api.e-control.at/sprit/1.0/search/gas-stations/by-address?latitude=${d.latitude}&longitude=${d.longitude}&fuelType=${d.fuelType}&includeClosed=true`
-    let data = await new Request(reqUrl).loadJSON();
-    let price = data[0]["prices"][0]["amount"]
+    switch(d.country) {
+      case "austria": // for austrian gas stations:
+        {
+        let reqUrl = `https://api.e-control.at/sprit/1.0/search/gas-stations/by-address?latitude=${d.latitude}&longitude=${d.longitude}&fuelType=${d.fuelType}&includeClosed=true`
+        let data = await new Request(reqUrl).loadJSON();
+        var price = data[0]["prices"][0]["amount"]
+        break;
+        }
+      case "germany": // for german gas stations:
+        {
+        let reqUrl = `https://creativecommons.tankerkoenig.de/json/list.php?lat=${d.latitude}&lng=${d.longitude}&rad=3&sort=dist&type=${d.fuelType}&apikey=${apiKey}`
+        let data = await new Request(reqUrl).loadJSON();
+        var price = data["stations"][0]["price"]
+        break;
+        }
+      default:
+        return null
+    }
     return price
   } catch (e) {
     console.log(e)
@@ -80,22 +111,10 @@ async function getPriceDataA(d) {
   }
 }
 
-// Request method for germany gas stations:
-async function getPriceDataB(d) {
-  try {
-    const reqUrl = `https://creativecommons.tankerkoenig.de/json/list.php?lat=${d.latitude}&lng=${d.longitude}&rad=3&sort=dist&type=${d.fuelType}&apikey=${apiKey}`
-    let data = await new Request(reqUrl).loadJSON();
-    let price = data["stations"][0]["price"]
-    return price
-  } catch (e) {
-    console.log(e)
-    return null
-  }
-}
 
 // Request gas prices from stations via API request
-let priceA = await getPriceDataA(stationA)
-let priceB = await getPriceDataB(stationB)
+let priceA = await getPriceData(stationA)
+let priceB = await getPriceData(stationB)
 let priceDiff = priceB - priceA
 
 
@@ -169,8 +188,8 @@ async function createWidget(items) {
     row.layoutHorizontally();
     row.addSpacer((fuelType == "super") ? 17 : 20)
     {
-      for (let i = 0; i < fuelTypeStringList.length; i++) {
-        let icon = row.addImage(fuelTypeStringList[i].image)
+      for (let i = 0; i < fuelTypeStringList[fuelType].length; i++) {
+        let icon = row.addImage(fuelTypeStringList[fuelType][i].image)
         icon.tintColor = (i > 4 && fuelType == "super") ? dangerColor : secondaryColor
         icon.imageSize = new Size(16, 16)
         if (i == 4 && fuelType == "super") {
@@ -187,18 +206,18 @@ async function createWidget(items) {
     {
       const col = row.addStack();
       col.layoutVertically();
-      const station = col.addText("  Austria:")
+      const station = col.addText("  " + stationA.country.charAt(0).toUpperCase() + stationA.country.slice(1) + ":")
       station.font = Font.mediumSystemFont(12);
       station.textColor = stationColor
       let price = col.addText("    " + priceA.toFixed(2) + "€")
       price.textColor = primaryColor
       price.font = Font.mediumSystemFont(12)
     }
-    row.addSpacer(28)
+    row.addSpacer(26)
     {
       const col = row.addStack();
       col.layoutVertically();
-      const station = col.addText("Germany:")
+      const station = col.addText("  " + stationB.country.charAt(0).toUpperCase() + stationB.country.slice(1) + ":")
       station.font = Font.mediumSystemFont(12);
       station.textColor = stationColor
       let price = col.addText("   " + priceB.toFixed(2) + "€")
